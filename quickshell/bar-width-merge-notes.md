@@ -21,7 +21,7 @@ This fork adds a minimal fixed-width option for horizontal bars.
 
 - `Modules/DankBar/DankBarWindow.qml`
   Horizontal bars now switch from full width to fixed width when `barConfig.barWidth > 0`.
-  Positioning is centered with `WlrLayershell.margins.left`.
+  Positioning is centered with matching `WlrLayershell.margins.left` and `WlrLayershell.margins.right`.
 
 - `Common/SettingsData.qml`
   `getBarBounds()` now returns the same centered fixed width for top and bottom bars when `barWidth > 0`.
@@ -34,6 +34,6 @@ This fork adds a minimal fixed-width option for horizontal bars.
 
 ## Rebase Notes
 
-- If upstream changes `DankBarWindow.qml` horizontal anchor logic, keep the `barWidth > 0` branch together with `implicitWidth` and `WlrLayershell.margins.left`.
+- If upstream changes `DankBarWindow.qml` horizontal anchor logic, keep the `barWidth > 0` branch together with `implicitWidth` and the matching left/right `WlrLayershell` margins.
 - If upstream changes `getBarBounds()`, preserve the centered width override for top and bottom bars.
 - If upstream changes `barConfigs` defaults or migrations, keep `barWidth` in both places.
