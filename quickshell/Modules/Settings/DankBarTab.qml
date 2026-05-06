@@ -107,6 +107,7 @@ Item {
             spacing: defaultBar.spacing ?? 4,
             innerPadding: defaultBar.innerPadding ?? 4,
             bottomGap: defaultBar.bottomGap ?? 0,
+            barWidth: defaultBar.barWidth ?? 0,
             transparency: defaultBar.transparency ?? 1.0,
             widgetTransparency: defaultBar.widgetTransparency ?? 1.0,
             squareCorners: defaultBar.squareCorners ?? false,
@@ -877,6 +878,35 @@ Item {
                             value: selectedBarConfig?.popupGapsManual ?? 4
                             restoreMode: Binding.RestoreBinding
                         }
+                    }
+                }
+            }
+
+            SettingsCard {
+                iconName: "straighten"
+                title: I18n.tr("Bar Width")
+                settingKey: "barWidth"
+                visible: selectedBarConfig?.enabled && !selectedBarIsVertical && !SettingsData.frameEnabled
+
+                SettingsSliderRow {
+                    id: barWidthSlider
+                    text: I18n.tr("Fixed Width")
+                    value: selectedBarConfig?.barWidth ?? 0
+                    minimum: 0
+                    maximum: Math.max(600, Math.round((Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.95))
+                    unit: "px"
+                    defaultValue: 0
+                    onSliderDragFinished: finalValue => {
+                        SettingsData.updateBarConfig(selectedBarId, {
+                            barWidth: finalValue
+                        });
+                    }
+
+                    Binding {
+                        target: barWidthSlider
+                        property: "value"
+                        value: selectedBarConfig?.barWidth ?? 0
+                        restoreMode: Binding.RestoreBinding
                     }
                 }
             }

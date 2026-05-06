@@ -25,6 +25,13 @@ function parse(root, jsonObj) {
         var coerce = spec.coerce;
         root[k] = coerce ? (coerce(raw) !== undefined ? coerce(raw) : root[k]) : raw;
     }
+
+    if (Array.isArray(root.barConfigs)) {
+        for (var i = 0; i < root.barConfigs.length; i++) {
+            if (root.barConfigs[i] && root.barConfigs[i].barWidth === undefined)
+                root.barConfigs[i].barWidth = 0;
+        }
+    }
 }
 
 function toJson(root) {
@@ -85,6 +92,7 @@ function migrateToVersion(obj, targetVersion) {
                 borderColor: settings.dankBarBorderColor || "surfaceText",
                 borderOpacity: settings.dankBarBorderOpacity !== undefined ? settings.dankBarBorderOpacity : 1.0,
                 borderThickness: settings.dankBarBorderThickness !== undefined ? settings.dankBarBorderThickness : 1,
+                barWidth: 0,
                 fontScale: settings.dankBarFontScale !== undefined ? settings.dankBarFontScale : 1.0,
                 autoHide: settings.dankBarAutoHide !== undefined ? settings.dankBarAutoHide : false,
                 autoHideDelay: settings.dankBarAutoHideDelay !== undefined ? settings.dankBarAutoHideDelay : 250,
@@ -250,6 +258,16 @@ function migrateToVersion(obj, targetVersion) {
 
     if (currentVersion < 11) {
         settings.configVersion = 11;
+    }
+
+    if (currentVersion < 12) {
+        if (Array.isArray(settings.barConfigs)) {
+            for (var k = 0; k < settings.barConfigs.length; k++) {
+                if (settings.barConfigs[k] && settings.barConfigs[k].barWidth === undefined)
+                    settings.barConfigs[k].barWidth = 0;
+            }
+        }
+        settings.configVersion = 12;
     }
 
     return settings;

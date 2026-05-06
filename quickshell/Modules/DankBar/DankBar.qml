@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.I3
+import Quickshell.Wayland
 import qs.Common
 import qs.Services
 
@@ -177,6 +178,45 @@ Item {
             leftWidgetsModel: root.leftWidgetsModel
             centerWidgetsModel: root.centerWidgetsModel
             rightWidgetsModel: root.rightWidgetsModel
+        }
+    }
+
+    Variants {
+        id: barExclusionVariants
+        model: {
+            const width = Math.max(0, root.barConfig?.barWidth ?? 0);
+            const position = root.barConfig?.position ?? SettingsData.Position.Top;
+            const isHorizontal = position === SettingsData.Position.Top || position === SettingsData.Position.Bottom;
+            if (width <= 0 || !isHorizontal)
+                return [];
+            return barVariants.model;
+        }
+
+        delegate: PanelWindow {
+            required property var modelData
+
+            readonly property int barPos: root.barConfig?.position ?? SettingsData.Position.Top
+            readonly property real effectiveSpacing: SettingsData.frameEnabled ? 0 : (root.barConfig?.spacing ?? 4)
+            readonly property real effectiveBarThickness: SettingsData.frameEnabled ? SettingsData.frameBarSize : Theme.snap(Math.max(20 + (root.barConfig?.innerPadding ?? 4) * 0.6 + (root.barConfig?.innerPadding ?? 4) + 4, Theme.barHeight - 4 - (8 - (root.barConfig?.innerPadding ?? 4))), CompositorService.getScreenScale(modelData))
+
+            screen: modelData
+            color: "transparent"
+            mask: Region {}
+
+            WlrLayershell.namespace: "dms:bar-exclusion"
+            WlrLayershell.layer: WlrLayer.Top
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+            WlrLayershell.exclusiveZone: (root.barConfig?.visible ?? true) ? (effectiveBarThickness + effectiveSpacing + (Theme.isConnectedEffect ? 0 : (root.barConfig?.bottomGap ?? 0))) : -1
+
+            implicitWidth: 0
+            implicitHeight: 1
+
+            anchors {
+                top: barPos === SettingsData.Position.Top
+                bottom: barPos === SettingsData.Position.Bottom
+                left: true
+                right: true
+            }
         }
     }
 }

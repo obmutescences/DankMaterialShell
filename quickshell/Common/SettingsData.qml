@@ -15,7 +15,7 @@ Singleton {
     id: root
     readonly property var log: Log.scoped("SettingsData")
 
-    readonly property int settingsConfigVersion: 11
+    readonly property int settingsConfigVersion: 12
 
     readonly property bool isGreeterMode: Quickshell.env("DMS_RUN_GREETER") === "1" || Quickshell.env("DMS_RUN_GREETER") === "true"
 
@@ -757,6 +757,7 @@ Singleton {
             "widgetOutlineColor": "primary",
             "widgetOutlineOpacity": 1.0,
             "widgetOutlineThickness": 1,
+            "barWidth": 0,
             "fontScale": 1.0,
             "iconScale": 1.0,
             "autoHide": false,
@@ -1774,14 +1775,17 @@ Singleton {
         const relativeX = pos.x;
         const relativeY = pos.y;
         const defaultBar = barConfigs[0] || getBarConfig("default");
+        const effectiveBarConfig = barConfig || defaultBar;
         const spacing = barSpacing !== undefined ? barSpacing : (defaultBar?.spacing ?? 4);
         const position = barPosition !== undefined ? barPosition : (defaultBar?.position ?? SettingsData.Position.Top);
-        const rawBottomGap = barConfig ? (barConfig.bottomGap !== undefined ? barConfig.bottomGap : (defaultBar?.bottomGap ?? 0)) : (defaultBar?.bottomGap ?? 0);
+        const rawBottomGap = effectiveBarConfig ? (effectiveBarConfig.bottomGap !== undefined ? effectiveBarConfig.bottomGap : (defaultBar?.bottomGap ?? 0)) : (defaultBar?.bottomGap ?? 0);
         const isConnected = connectedFrameModeActive;
         const bottomGap = isConnected ? 0 : Math.max(0, rawBottomGap);
+        const horizontalBarBounds = !isConnected && (position === SettingsData.Position.Top || position === SettingsData.Position.Bottom) && Math.max(0, effectiveBarConfig?.barWidth ?? 0) > 0 ? getBarBounds(screen, barThickness, position, effectiveBarConfig) : null;
+        const horizontalWindowOffset = horizontalBarBounds?.x ?? 0;
 
-        const useAutoGaps = (barConfig && barConfig.popupGapsAuto !== undefined) ? barConfig.popupGapsAuto : (defaultBar?.popupGapsAuto ?? true);
-        const manualGapValue = (barConfig && barConfig.popupGapsManual !== undefined) ? barConfig.popupGapsManual : (defaultBar?.popupGapsManual ?? 4);
+        const useAutoGaps = (effectiveBarConfig && effectiveBarConfig.popupGapsAuto !== undefined) ? effectiveBarConfig.popupGapsAuto : (defaultBar?.popupGapsAuto ?? true);
+        const manualGapValue = (effectiveBarConfig && effectiveBarConfig.popupGapsManual !== undefined) ? effectiveBarConfig.popupGapsManual : (defaultBar?.popupGapsManual ?? 4);
         const popupGap = isConnected ? 0 : (useAutoGaps ? Math.max(4, spacing) : manualGapValue);
         const edgeSpacing = isConnected ? 0 : spacing;
 
@@ -1800,13 +1804,13 @@ Singleton {
             };
         case SettingsData.Position.Bottom:
             return {
-                "x": relativeX,
+                "x": relativeX + horizontalWindowOffset,
                 "y": (screen?.height || 0) - (barThickness + edgeSpacing + bottomGap + popupGap),
                 "width": widgetWidth
             };
         default:
             return {
-                "x": relativeX,
+                "x": relativeX + horizontalWindowOffset,
                 "y": barThickness + edgeSpacing + bottomGap + popupGap,
                 "width": widgetWidth
             };
@@ -1961,22 +1965,32 @@ Singleton {
         }
 
         switch (position) {
-        case SettingsData.Position.Top:
+        case SettingsData.Position.Top: {
+            const topAvailableWidth = screenWidth - leftOffset - rightOffset;
+            const topRequestedWidth = Math.max(0, barConfig?.barWidth ?? 0);
+            const topWidth = topRequestedWidth > 0 ? Math.min(topAvailableWidth, topRequestedWidth) : topAvailableWidth;
+            const topX = leftOffset + Math.max(0, (topAvailableWidth - topWidth) / 2);
             return {
-                "x": leftOffset,
+                "x": topX,
                 "y": topOffset + bottomGap,
-                "width": screenWidth - leftOffset - rightOffset,
+                "width": topWidth,
                 "height": barThickness + wingSize,
                 "wingSize": wingSize
             };
-        case SettingsData.Position.Bottom:
+        }
+        case SettingsData.Position.Bottom: {
+            const bottomAvailableWidth = screenWidth - leftOffset - rightOffset;
+            const bottomRequestedWidth = Math.max(0, barConfig?.barWidth ?? 0);
+            const bottomWidth = bottomRequestedWidth > 0 ? Math.min(bottomAvailableWidth, bottomRequestedWidth) : bottomAvailableWidth;
+            const bottomX = leftOffset + Math.max(0, (bottomAvailableWidth - bottomWidth) / 2);
             return {
-                "x": leftOffset,
+                "x": bottomX,
                 "y": screenHeight - barThickness - wingSize - bottomGap - bottomOffset,
-                "width": screenWidth - leftOffset - rightOffset,
+                "width": bottomWidth,
                 "height": barThickness + wingSize,
                 "wingSize": wingSize
             };
+        }
         case SettingsData.Position.Left:
             return {
                 "x": 0,

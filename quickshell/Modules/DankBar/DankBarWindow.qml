@@ -410,6 +410,22 @@ PanelWindow {
     readonly property real effectiveBarThickness: SettingsData.frameEnabled ? SettingsData.frameBarSize : Theme.snap(Math.max(barWindow.widgetThickness + (barConfig?.innerPadding ?? 4) + 4, Theme.barHeight - 4 - (8 - (barConfig?.innerPadding ?? 4))), _dpr)
     readonly property bool effectiveOpenOnOverview: SettingsData.frameEnabled ? SettingsData.frameShowOnOverview : (barConfig?.openOnOverview ?? false)
     readonly property real widgetThickness: Theme.snap(Math.max(20, 26 + (barConfig?.innerPadding ?? 4) * 0.6), _dpr)
+    readonly property real _baseBarExtent: Theme.px(effectiveBarThickness + effectiveSpacing + ((barConfig?.gothCornersEnabled ?? false) && !hasMaximizedToplevel ? _wingR : 0), _dpr)
+    readonly property real _requestedBarWidth: Math.max(0, barConfig?.barWidth ?? 0)
+    readonly property real _horizontalBarWidth: {
+        if (isVertical || _requestedBarWidth <= 0)
+            return 0;
+        const available = Math.max(_baseBarExtent, (screen?.width ?? 0) - (hasAdjacentLeftBar ? _baseBarExtent : 0) - (hasAdjacentRightBar ? _baseBarExtent : 0));
+        return Theme.snap(Math.min(available, _requestedBarWidth), _dpr);
+    }
+    readonly property real _horizontalBarX: {
+        if (isVertical || _requestedBarWidth <= 0)
+            return 0;
+        const leftInset = hasAdjacentLeftBar ? _baseBarExtent : 0;
+        const rightInset = hasAdjacentRightBar ? _baseBarExtent : 0;
+        const available = Math.max(0, (screen?.width ?? 0) - leftInset - rightInset);
+        return Theme.snap(leftInset + Math.max(0, (available - _horizontalBarWidth) / 2), _dpr);
+    }
 
     readonly property bool hasAdjacentTopBar: {
         if (barConfig?.autoHide ?? false)
@@ -507,8 +523,8 @@ PanelWindow {
     }
 
     screen: modelData
-    implicitHeight: !isVertical ? Theme.px(effectiveBarThickness + effectiveSpacing + ((barConfig?.gothCornersEnabled ?? false) && !hasMaximizedToplevel ? _wingR : 0), _dpr) + _shadowBuffer : 0
-    implicitWidth: isVertical ? Theme.px(effectiveBarThickness + effectiveSpacing + ((barConfig?.gothCornersEnabled ?? false) && !hasMaximizedToplevel ? _wingR : 0), _dpr) + _shadowBuffer : 0
+    implicitHeight: !isVertical ? _baseBarExtent + _shadowBuffer : 0
+    implicitWidth: isVertical ? _baseBarExtent + _shadowBuffer : (_requestedBarWidth > 0 ? _horizontalBarWidth : 0)
     color: "transparent"
 
     property var nativeInhibitor: null
@@ -653,9 +669,16 @@ PanelWindow {
     anchors.top: !isVertical ? (barPos === SettingsData.Position.Top) : true
     anchors.bottom: !isVertical ? (barPos === SettingsData.Position.Bottom) : true
     anchors.left: !isVertical ? true : (barPos === SettingsData.Position.Left)
-    anchors.right: !isVertical ? true : (barPos === SettingsData.Position.Right)
+    anchors.right: !isVertical ? (_requestedBarWidth <= 0) : (barPos === SettingsData.Position.Right)
 
-    exclusiveZone: (barWindow.hasFullscreenToplevel || !(barConfig?.visible ?? true) || topBarCore.autoHide) ? -1 : (barWindow.effectiveBarThickness + effectiveSpacing + (Theme.isConnectedEffect ? 0 : (barConfig?.bottomGap ?? 0)))
+    WlrLayershell.margins {
+        left: !barWindow.isVertical && barWindow._requestedBarWidth > 0 ? barWindow._horizontalBarX : 0
+        right: 0
+        top: 0
+        bottom: 0
+    }
+
+    exclusiveZone: (_requestedBarWidth > 0 || barWindow.hasFullscreenToplevel || !(barConfig?.visible ?? true) || topBarCore.autoHide) ? -1 : (barWindow.effectiveBarThickness + effectiveSpacing + (Theme.isConnectedEffect ? 0 : (barConfig?.bottomGap ?? 0)))
 
     Item {
         id: inputMask

@@ -482,6 +482,7 @@ var SPEC = {
             widgetOutlineColor: "primary",
             widgetOutlineOpacity: 1.0,
             widgetOutlineThickness: 1,
+            barWidth: 0,
             fontScale: 1.0,
             iconScale: 1.0,
             autoHide: false,
