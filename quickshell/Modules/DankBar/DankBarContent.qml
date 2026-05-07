@@ -83,7 +83,7 @@ Item {
     anchors.bottomMargin: (_barIsVertical
         ? (hasAdjacentBottomBarLive ? outlineThickness : Theme.spacingXS)
         : 0) + _frameBottomInset
-    clip: false
+    clip: _hasBarWindow && barWindow._requestedBarWidth > 0
 
     DeferredAction {
         id: enableFrameInsetAnimation
@@ -488,6 +488,7 @@ Item {
                 objectName: "leftSection"
                 overrideAxisLayout: true
                 forceVerticalLayout: false
+                visible: (barWindow._requestedBarWidth ?? 0) <= 0
                 anchors {
                     left: parent.left
                     verticalCenter: parent.verticalCenter
@@ -520,6 +521,7 @@ Item {
                 objectName: "rightSection"
                 overrideAxisLayout: true
                 forceVerticalLayout: false
+                visible: (barWindow._requestedBarWidth ?? 0) <= 0
                 anchors {
                     right: parent.right
                     verticalCenter: parent.verticalCenter

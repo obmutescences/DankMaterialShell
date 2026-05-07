@@ -1145,7 +1145,7 @@ BasePill {
                 anchorPos = Qt.point(targetX, adjustedY);
             } else {
                 let targetY = root.isAtBottom ? screen.height - (root.barThickness + root.barSpacing + (barConfig?.bottomGap ?? 0) + Theme.popupDistance) : root.barThickness + root.barSpacing + (barConfig?.bottomGap ?? 0) + Theme.popupDistance;
-                anchorPos = Qt.point(relativeX + root.width / 2, targetY);
+                anchorPos = Qt.point(barX + relativeX + root.width / 2, targetY);
             }
         }
 
@@ -1610,7 +1610,7 @@ BasePill {
                             anchorPos = Qt.point(targetX, adjustedY);
                         } else {
                             let targetY = menuRoot.isAtBottom ? screen.height - (root.barThickness + root.barSpacing + (barConfig?.bottomGap ?? 0) + Theme.popupDistance) : root.barThickness + root.barSpacing + (barConfig?.bottomGap ?? 0) + Theme.popupDistance;
-                            anchorPos = Qt.point(relativeX + targetItem.width / 2, targetY);
+                            anchorPos = Qt.point(barX + relativeX + targetItem.width / 2, targetY);
                         }
                     }
                 }

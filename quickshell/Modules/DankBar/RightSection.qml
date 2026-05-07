@@ -22,10 +22,14 @@ Item {
     implicitHeight: layoutLoader.item ? layoutLoader.item.implicitHeight : 0
     implicitWidth: layoutLoader.item ? layoutLoader.item.implicitWidth : 0
 
+    width: !isVertical && parent ? Math.min(implicitWidth, parent.width) : implicitWidth
+    clip: !isVertical
+
     Loader {
         id: layoutLoader
         width: parent.width
         height: parent.height
+        clip: !root.isVertical
         sourceComponent: root.isVertical ? columnComp : rowComp
     }
 

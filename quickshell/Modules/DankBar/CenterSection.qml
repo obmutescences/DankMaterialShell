@@ -30,7 +30,7 @@ Item {
     property real totalSize: 0
 
     function updateLayout() {
-        if (SettingsData.centeringMode === "geometric") {
+        if ((barConfig?.barWidth ?? 0) > 0 || SettingsData.centeringMode === "geometric") {
             applyGeometricLayout();
         } else {
             applyIndexLayout();
